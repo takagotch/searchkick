@@ -112,6 +112,63 @@ class Product < ApplicationRecord
   searchkick wordnet: true
 end
 
+Product.search "zucini", misspellings: {edit_distance: 2}
+Product.search "zuchini", misspellings: {below: 5}
+Product.search "zuchini", misspellings: false
+Product.search "zucini", fileds: [:name, :color], misspellings: {fileds: [:name]}
+
+Product.search "better", exclude: ["peanut butter"]
+
+exclude_queries = {
+  "butter" => ["peanut butter"],
+  "cream" => ["ice cream", "shipped cream"]
+}
+Product.search query, exclude: exclude_queries[query]
+
+Product.search("butter", boost_where: {category: {value: "pantry", factor: 0.5}})
+
+gem 'gemoji-parser'
+Product.search "🙏🙋", emoji: true
+
+class Product < ApplicationRecord
+  belongs_to :department
+  def search_data
+    {
+      name: name,
+      department_name: department.name,
+      on_sale: sale_price.present?
+    }
+  end
+end
+
+class Product < ApplicationRecord
+  scope :search_import, -> { includes(:department) }
+end
+
+class Product < ApplicationReocrd
+  scope :search_import, -> { where(active: true) }
+  def should_index?
+    active
+  end
+end
+
+Product.reindex(resume: true)
+
+class Product < ApplicationRecord
+  searchkick callbacks: :async
+end
+
+
+class Product < ApplicationRecord
+  searchkick callbacks: false
+end
+
+Searchkick.callbacks(:bulk) do
+  User.find_each(&:update_fields)
+end
+
+
+
 
 
 ```
