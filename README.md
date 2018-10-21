@@ -60,14 +60,41 @@ fields: ["title^10", "description"]
 boost_by: [:orders_count]
 boost_by: {orders_count: {factor: 10}}
 
-boost_where: {}
-boost_where: {}
-boost_where: {]
+boost_where: {:user_id: 1}
+boost_where: {user_id: {value: 1, factor: 100}}
+boost_where: {user_id: [{value: 1, factor: 100}, {value: 2, factor: 200}]]
 
-boost_by_recency: {}
+boost_by_recency: {created_at: {scale: "7d", decay: 0.5}}
+
+Product.search "*"
+
+@products = Product.search "milk", page: params[:page], per_page: 20
+
+Product.search "fresh honey"
+
+Product.search "fresh honey", operator: "or"
+
+class Product < ApplicationRecord
+  searchkick word_start: [:name]
+end
+
+Product.search "back", fileds: [:name], match: :word_start
+
+User.search query, fields: [{email: :exact}, :name]
+
+User.search "fresh honey", match: :phrase
+
+class Product < ApplicationRecord
+  searchkick language: "german"
+end
 
 ```
 
+```
+<%= paginate @products %>
+<%= will_paginate @products %>
+
+```
 
 https://github.com/ankane
 
