@@ -211,14 +211,78 @@ end
 
 Movie.search "jurassic pa", fileds: [:title], match: :word_start
 
+class MovieController < ApplicationController
+  def autocomplete
+    render json: Movie.search(params[:query], {
+      fields: ["title^5", "director"],
+      match: :word_start,
+      limit: 10,
+      load: false,
+      misspelling: {below: 5}
+    }).map(&Ltitle)
+  end
+end
+
+class Product < ApplicationRecord
+  searchkick suggest: [:name]
+end
+
+products = Product.search "peantu butta", suggest: true
+products.suggestions 
+
+products = Product.search "chuk taylor", aggs: [:product_type, :gender, :brand]
+products.aggs
+
+Product.search "wingtips", where: {color: "brandy"}, aggs: [:size]
+
+Product.search "wingtips", where: {color: "brandy"}, aggs: [:size], smart_aggs: false
+
+Product.search "wingtips", aggs: {size: {where: {color: "brandy"}}}
+
+Product.search "apples", aggs: {sotre_id: {limit: 10}}
+
+Product.search "wingtips", aggs: {color: {order: {"_key" => "asc"}}}
+
+price_ranges = [{to: 20}, {from: 20, to: 50}, {from: 50}]
+Product.search "*", aggs: {price: {ranges: price_ranges}}
+
+Product.search "*", aggs: {color: {script: {source: "'Color:' = _value"}}}
+
+Product.search "pear", aggs: {products_per_year: {date_histogram: {filed: :created_at, interval: :year}}}
+Product.search "orange", body_options: {aggs: {price: {histogram: {filed: :price, interval: 10}}}}
+
+
+
+
+
+
+
+
 
 
 
 ```
+
 
 ```
 <%= paginate @products %>
 <%= will_paginate @products %>
+
+<input type="text" id="query" name="query" />
+<script src="jquery.js"></script>
+<script>
+  var movies = new Bloodhound({
+    datumTokenizer: Bloodhound.tokenizers.whitespace,
+    queryTokenizer: Bloodhound.tokenizers.whitespace,
+    remote: {
+      url: '/movies/autocomplete?query=%QUERY',
+      wildcard: '%QUERY'
+    }
+  });
+  $('#query').typehead(null, {
+    source: movies
+  });
+</script>
 
 ```
 
