@@ -32,12 +32,39 @@ where: {
   orders_count: 1..10,
   aisle_id: [25, 30],
   store_id: {not: 2},
-  aisle_id: {not: []},
-  user_ids: {all: []},
+  aisle_id: {not: [25, 30]},
+  user_ids: {all: [1, 3]},
   category: /frozen .+/,
   _or: [{in_stock: true}, {backorderd: true}]
 }
 
+order: {_score: :desc}
+
+limit: 20, offset: 40
+
+select: [:name]
+
+results = Product.search("milk")
+results.size
+result.any?
+results.each { |result| ... }
+
+Product.search{"apples", load: false}
+
+results.total_count
+
+results.response
+
+fields: ["title^10", "description"]
+
+boost_by: [:orders_count]
+boost_by: {orders_count: {factor: 10}}
+
+boost_where: {}
+boost_where: {}
+boost_where: {]
+
+boost_by_recency: {}
 
 ```
 
