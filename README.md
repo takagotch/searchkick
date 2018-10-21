@@ -288,6 +288,291 @@ Restaurant.search "dessert", where: {location: {geo_polygon: {points: [{lat: 38,
 Restaurant.search "noodles", boost_by_distance: {location: {origin: {lat" 37, lon: -122}}}
 Restaurant.search "wings", boost_by_distance: {location: {origin: {lat: 37, lon: -122}, function: "linear", scale: "30mi". decay: 0.5}}
 
+class Restaurant < ApplicationRecord
+  searchkick geo_shape: {
+    bounds: {tree: "geohash", precision: "1km"}
+  }
+  def search_data
+    attributes.merge(
+      bounds: {
+        type: "envelope",
+        coordinates: [{lat: 4, lon: 1}, {lat: 2, lon: 3}]
+      }
+    )
+  end
+end
+
+Restaurant.search "", where: {}
+Restaurant.search "", where: {}
+Restaurant.search "", where: {}
+Restaurant.search "", where: {}
+
+class Dog < Animal
+end
+
+class Animal < ApplicationRecord
+end
+Animal.reindex
+Dog.reindex
+Animal.search "*"
+Dog.search "*"
+Animal.search "*", type: [Dog, Cat]
+
+Dog.search "airbudd", suggest: true
+
+Product.search("soap", debug: true)
+Product.search("soap", explain: true).response
+Product.search_index.token()
+Product.search_index.tokens()
+Product.search_index.tokens()
+Product.search_index.tokens()
+Product.search_index.tokens()
+
+
+EMV[] = ""
+gem ''
+
+Searchkick.aws_credentials = {
+  access_key_id: ENV[],
+  secret_access_key: ENV[],
+  region: ""
+}
+
+ENV["ELASTICSEARCH_URL"] = "https://user.password@host"
+
+ENV["ELASTICSEARCH_URL"] = "https://user.password@host2,https://user:password@host2"
+
+config.lograge.custom_options = lambda do |event|
+  options = {}
+  options[:search] = event.payload[] if event.payload[:searchkick_runtimate].to_f > 0
+  options
+end
+
+gem 'oj'
+
+gem 'typhoeus'
+
+Ethon.logger = Logger.new(nil)
+class Product < ApplicationRecord
+  searchkick searchable: [:name]
+end
+
+class Product < ApplicationRecord
+  searchkick filterable [:brand]
+end
+
+Product.rendex(async: true)
+Product.search_index.promote(index_name)
+Searchkick.redis = Redis.new
+Searchkick.reindex_status(index_name)
+Product.reindex(async: {wait: true})
+
+gem 'activejob-traffic_control', '>= 0.1.3'
+
+ActiveJob::TrafficControl.client = Searchkick.redis
+class Searchkick::BulkReindexJob
+  concurrency 3
+end
+
+Product.reindex(async: true, refresh_interval: "30s")
+Product.search_index.promote(index_name, update_refresh_interval: true)
+
+Searchkick.redis = ConnectionPool.new { Redis.new }
+
+class Product < ApplicationRecord
+  searchkick callbacks: :queue
+end
+
+Searchkick::ProcessQueueJob.perform_later(class_name: "Product")
+Product.search_index.reindex_queue.length
+
+class Bussiness < ApplicaionRecord
+  searchikick routing: true
+  def search_routing
+    city_id
+  end
+end
+
+Bussiness.search "", routing: params[:city_id]
+
+class Product < ApplicationRecord
+  def search_data
+  end
+  def search_prices
+  end
+end
+
+Product.reindex{:search_prices}
+
+class ReindexConversionsJob < ApplicationJob
+  def perform(class_name)
+  end
+end
+
+
+ReindexConversionsJob.perform_later("Product")
+
+class Product < ApplicationRecord
+end
+
+class Product < ApplicationRecord
+end
+
+products = Product.search body: {}
+
+products.response
+
+products = Product.search "", body_options: {min_score: 1}
+products =
+  Product.search "" do |body|
+    body[:min_score] = 1
+  end
+
+Searchkick.client
+
+products = Product.search()
+coupons = Coupon.search()
+Searchkick.multi_search()
+
+Searchkick.search "", index_name: []
+
+where: {}
+
+indices_boost: {}
+
+User.search "", fileds: [], where: {}
+
+product = Product.find()
+product.reindex
+
+Product.where().reindex
+
+store.products.reindex
+Product.search_index.clean_indices
+
+class Product < ApplicationRecord
+  searchkick settings: {number_of_shards: 3}
+end
+
+class Product < ApplicationReocrd
+end
+
+class Product < ApplicaitonRecord
+end
+
+class Product < ApplicationRecord
+end
+
+Searchkick.index_prefix = "datakick"
+Product.search("", conversions_term: "")
+
+class Product < ApplicationRecord
+  has_many :searches, class_name: "'
+  searchkick conversions: []
+  def search_data
+    {
+      name: name,
+      unique_user_conversions: searches.group().uniq.count(),
+      # {}
+      total_conversions: searches.group().count
+      # {}
+    }
+  end
+end
+
+Product.search()
+Product.search()
+Product.search()
+
+Searchkick.timeout = 15
+Searchkick.search_timeout = 3
+Searchkick.search_method_name = :lookup
+Searchkick.queue_name = :search_reindex
+Product.search "milk", includes: [:brand, :stores]
+
+Searchkick.search("*", index_name: [], model_includes: {Product => [], S})
+Product.search "", scope_results: ->(r) { r.with_attached_images }
+
+class Product < ApplicationRecord
+end
+
+class Product < ApplicationRecord
+end
+
+class Product < ApplicationRecord
+end
+
+class Product < ApplicationRecord
+end
+
+class Product < ApplicationRecord
+end
+
+class Product < ApplicationRecord
+end
+
+Product.reindex(import: false)
+
+class Product < ApplicationRecord
+  def search_document_id
+    custom_id
+  end
+end
+
+products = Product.search()
+products.each {...}
+
+Product.search()
+
+Searchkick.model_options = {
+  batch_size: 200
+}
+
+class Product < ApplicationRecord
+end
+
+Product.search "", misspellings: {}
+Product.search "ah", misspellings: {prefix_length: 2}
+
+# test/test_helper.rb
+Product.reindex
+Searchkick.disable_callbacks
+
+class ProductTest < Minitest::Test
+end
+
+# spec/spec_helper.rb
+RSpec.configure do |config|
+end
+
+describe Product, search: true do
+end
+
+FactoryBot.define do
+end
+FactoryBot.create(:product, :some_trait, :reindex, some_attribute: "foo")
+
+Searchkick.index_suffix = ENV["TEST_ENV_NUMBER"]
+
+class Product < ApplicationRecord
+  searchkick _all: false, default_fields: [:name]
+end
+
+class Product < ApplicationRecord
+  def search_data
+    {
+      all: [name, size, quantity].join(" ")
+    }
+  end
+end
+
+product.save!
+Product.search_index.refresh
+
+class Product < ApplicationRecord
+  searchkick settings: {number_of_shards: 1}
+end
+
 ```
 
 
@@ -312,6 +597,7 @@ Restaurant.search "wings", boost_by_distance: {location: {origin: {lat: 37, lon:
 </script>
 
 ```
+-----
 
 https://github.com/ankane
 
