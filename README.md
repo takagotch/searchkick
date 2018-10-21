@@ -30,12 +30,12 @@ fileds: [name, :brand]
 where: {
   expires_at: {gt: Time.now},
   orders_count: 1..10,
-  aisle_id: [],
-  store_id: {},
-  aisle_id: {},
-  user_ids: {},
-  category: //,
-  _or: [{}, {}]
+  aisle_id: [25, 30],
+  store_id: {not: 2},
+  aisle_id: {not: []},
+  user_ids: {all: []},
+  category: /frozen .+/,
+  _or: [{in_stock: true}, {backorderd: true}]
 }
 
 
