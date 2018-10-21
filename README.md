@@ -411,12 +411,19 @@ class Bussiness < ApplicaionRecord
   end
 end
 
-Bussiness.search "", routing: params[:city_id]
+Bussiness.search "ice cream", routing: params[:city_id]
 
 class Product < ApplicationRecord
   def search_data
+    {
+      name: name
+    }.merge(search_prices)
   end
   def search_prices
+    {
+      price: price,
+      sale_price: sale_price
+    }
   end
 end
 
@@ -424,6 +431,34 @@ Product.reindex{:search_prices}
 
 class ReindexConversionsJob < ApplicationJob
   def perform(class_name)
+    {
+      name: name
+    }.merge(search_conversions)
+  end
+  def search_conversions
+    {
+      conversions: Rails.cache.read("search_conversions:#{self.class.name}:#{id}") || {}
+    }
+  end
+end
+
+class ReindexConversionsJob < ApplicationJob
+  def perform(class_name)
+    recently_converted_ids =
+      Searchjoy::Search.where("convertable_type = ? AND converted_at > ?", class_name, 1.days.ago)
+      .order(:convertable_id).uniq.pluck(:convertable_id)
+    recently_converted_ids.in_groups_of(1000, false) do |ids|
+      conversions = 
+        Searchjoy::Search.where(convertable_id: ids, convertalbe_type: class_name)
+        .group(:convertable_id, :query).uniq.count(:user_id)
+      conversions_by_record = {}
+      conversions.each do |(id, query), count|
+        (conversions_by_record[id] ||= {})[query] = count
+      end
+      conversions_by_record.each do |id, conversions|
+        Rails.cache.write("search_conversions:#{class_name}:#{id}", conversions)
+      end
+      class_name.constantize.where(id: ids).reindex(:search_conversions)
   end
 end
 
@@ -431,39 +466,47 @@ end
 ReindexConversionsJob.perform_later("Product")
 
 class Product < ApplicationRecord
+  searchkick mappings: {
+    product: {
+      properties: {
+        name: {type: "keyword"}
+      }
+    }
+  }
 end
 
 class Product < ApplicationRecord
+  searchkick merge_mappings: true, mappings: {...}
 end
 
-products = Product.search body: {}
+products = Product.search body: {query: {match: {name: "milk"}}}
 
 products.response
 
-products = Product.search "", body_options: {min_score: 1}
+products = Product.search "milk", body_options: {min_score: 1}
 products =
-  Product.search "" do |body|
+  Product.search "apples" do |body|
     body[:min_score] = 1
   end
 
 Searchkick.client
 
-products = Product.search()
-coupons = Coupon.search()
-Searchkick.multi_search()
+products = Product.search("snacks", execute: false)
+coupons = Coupon.search("snacks", execute: false)
+Searchkick.multi_search([products, coupons])
 
-Searchkick.search "", index_name: []
+Searchkick.search "milk", index_name: [Product, Category]
 
-where: {}
+where: {_or: {{_type: "product", in_stock: true}, {_type: "category", active: true}}}
 
-indices_boost: {}
+indices_boost: {Category => 2, Product => 1}
 
-User.search "", fileds: [], where: {}
+User.search "san", fileds: ["address.city"], where: {"address.zip_code" => 12345}
 
-product = Product.find()
+product = Product.find(1)
 product.reindex
 
-Product.where().reindex
+Product.where(store_id: 1).reindex
 
 store.products.reindex
 Product.search_index.clean_indices
@@ -473,34 +516,37 @@ class Product < ApplicationRecord
 end
 
 class Product < ApplicationReocrd
+  snearchkick index_name: "products_v2"
 end
 
 class Product < ApplicaitonRecord
+  snearchkick index_name: -> { "#{name.tableize}-#{18n.locale}" }
 end
 
 class Product < ApplicationRecord
+  snearchkick index_prefix: "datakick"
 end
 
 Searchkick.index_prefix = "datakick"
-Product.search("", conversions_term: "")
+Product.search("bannna", conversions_term: "organic banana")
 
 class Product < ApplicationRecord
-  has_many :searches, class_name: "'
-  searchkick conversions: []
+  has_many :searches, class_name: "Searchjoy::Search"
+  searchkick conversions: ["unique_user_conversions", "total_conversions"]
   def search_data
     {
       name: name,
-      unique_user_conversions: searches.group().uniq.count(),
-      # {}
+      unique_user_conversions: searches.group(:query).uniq.count(:user_id),
+      # {"ice cream" => 234, "chocolate" => 67, "cream" => 2}
       total_conversions: searches.group().count
-      # {}
+      # {"ice cream" => 412, "chocolate" => 117, "cream" => 6}
     }
   end
 end
 
-Product.search()
-Product.search()
-Product.search()
+Product.search("banana")
+Product.search("banana", conversions: "total_conversions")
+Product.search("banana", conversions: false)
 
 Searchkick.timeout = 15
 Searchkick.search_timeout = 3
@@ -512,21 +558,27 @@ Searchkick.search("*", index_name: [], model_includes: {Product => [], S})
 Product.search "", scope_results: ->(r) { r.with_attached_images }
 
 class Product < ApplicationRecord
+  searchkick default_fields: [:name]
 end
 
 class Product < ApplicationRecord
+  searchkick special_characters: false
 end
 
 class Product < ApplicationRecord
+  searchkick stem: false
 end
 
 class Product < ApplicationRecord
+  searchkick similarity: "classic"
 end
 
 class Product < ApplicationRecord
+  searchkick case_sensitive: true
 end
 
 class Product < ApplicationRecord
+  searchkick batch_size: 200
 end
 
 Product.reindex(import: false)
@@ -547,9 +599,11 @@ Searchkick.model_options = {
 }
 
 class Product < ApplicationRecord
+  searchkick callbacks: false
+  after_commit :reindex, if: -> (model) { model.previous_changes.key?("name") }
 end
 
-Product.search "", misspellings: {}
+Product.search "api", misspellings: {prefix_length: 2}
 Product.search "ah", misspellings: {prefix_length: 2}
 
 # test/test_helper.rb
