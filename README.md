@@ -179,6 +179,37 @@ class Image < ApplicationRecord
   end
 end
 
+Product.search "apple", track: {user_id: current_user.id}
+
+class Product < ApplicationRecord
+  has_many :searches, class_name: "Searchjoy", as: :convertable
+  searchkick conversions: [:conversions]
+  def search_data
+    {
+      naem: name,
+      conversions: seraches.gorup(:query).uniq.count(:user_id)
+      # {"ice cream" => 234, "chocolate" => 67, "cream" => 2}
+    }
+  end
+end
+
+rake searchkick:reindex CLASS-Product
+
+class Product < ApplicationRecord
+  def search_data
+    {
+      name: name,
+      orderer_ids: orders.pluck(:user_id)
+    }
+  end
+end
+Procudt.search "milk", boost_where: {orderer_ids: curretn_user.id}
+
+class Movie < ApplicationRecord
+  searchkick word_start: [:title, :director]
+end
+
+Movie.search "jurassic pa", fileds: [:title], match: :word_start
 
 
 
