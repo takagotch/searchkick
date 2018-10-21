@@ -15,6 +15,23 @@ curl -o wordnet.tar.gz http://wordnetcode.princeton.edu/3.0/WNprolog-3.0.tar.gz
 tar -zxvf wordnet.tar.gz
 mv prolog/wn_s.pl /var/lib
 
+heroku addons:create bonsai
+heroku config:set ELASTICSEARCH_URL=`heroku config:get BONSAI_URL`
+hroku addons:create foundelasticsearch
+heroku addons:open foundelasticsearch
+heroku config:get FOUNDELASTICSEARCH_URL
+heroku config:set ELASTICSEARCH_URL=https://elastic:password@12345.us-east-1.aws.found.io
+heroku run rake searchkick:reindex CLASS=Product
+rake searchkick:reindex CLASS=Product
+rake searchkick:reindex CLASS=Product
+
+rake searchkick:reindex:all
+
+git clone https://github.com/ankane/searchkick.git
+cd searchkick
+bundle install
+rake test
+
 ```
 
 ```ruby
