@@ -167,6 +167,18 @@ Searchkick.callbacks(:bulk) do
   User.find_each(&:update_fields)
 end
 
+Searchkick.callbacks(false) do
+  User.find_each(&:update_fileds)
+end
+
+class Image < ApplicationRecord
+  belongs_to :product
+  after_commit :reindex_product
+  def reindex_product
+    product.reindex
+  end
+end
+
 
 
 
