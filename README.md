@@ -88,6 +88,27 @@ class Product < ApplicationRecord
   searchkick language: "german"
 end
 
+synonyms: -> { CSV.read("/some/path/synonyms.csv") }
+synonyms: ["lightbulb => halogenlamp"]
+
+class Product < ApplicaionRecord
+  acts_as_taggable
+  scope :search_import, -> { includes(:tags) }
+  def search_data
+    {
+      name_tagged: "#{name} #{tags.map(&:name).join(" ")}"
+    }
+  end
+end
+
+Product.search query, fileds: [:name_tagged]
+
+class Product < ApplicationRecord
+  searchkick wordnet: true
+end
+
+
+
 ```
 
 ```
