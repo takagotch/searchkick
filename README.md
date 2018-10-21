@@ -25,7 +25,18 @@ end
 
 Product.search "apples", where: {in_stock: true}, limit: 10, offset: 50
 
+fileds: [name, :brand]
 
+where: {
+  expires_at: {gt: Time.now},
+  orders_count: 1..10,
+  aisle_id: [],
+  store_id: {},
+  aisle_id: {},
+  user_ids: {},
+  category: //,
+  _or: [{}, {}]
+}
 
 
 ```
