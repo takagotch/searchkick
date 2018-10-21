@@ -265,13 +265,28 @@ Band.search "cinema", highlight: {tag: "<strong>"}
 
 Band.search "cinema", fileds: [:name], highlight: {fields: [:description]}
 
+bands = Band.search "cinema", highlight: {fragment_size: 20}
+bands.with_highlights(multiple: true).each do |band, highlights|
+  highlights[:name].join(" and ")
+end
+Band.search "cinema", fileds: [:nmae], highlight: {fieds: {name: {fragment_size: 200}}}
 
+product = Product.first
+product.similar(fields: [:name], where: {size: "12 oz"})
 
+class Restraunt < ApplicationReocrd
+  searchkick locations: [:location]
+  def search_data
+    attributes.merge(location: {lat: latitude, lon: longitude})
+  end
+end
 
+Restaurant.search "pizza", where: {location: {near: {lat: 37, lon: -114}, within: "100mi"}}
+Restaurant.seach "sushi", where: {location: {top_left: {lat: 38, lon: -123}, bottom_right: {lat: 37, lon: -122}}}
+Restaurant.search "dessert", where: {location: {geo_polygon: {points: [{lat: 38, lon: -123},{lat: 39, lon: -123},{lat: 37, lon: 122}]}}}
 
-
-
-
+Restaurant.search "noodles", boost_by_distance: {location: {origin: {lat" 37, lon: -122}}}
+Restaurant.search "wings", boost_by_distance: {location: {origin: {lat: 37, lon: -122}, function: "linear", scale: "30mi". decay: 0.5}}
 
 ```
 
