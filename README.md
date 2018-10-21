@@ -252,6 +252,18 @@ Product.search "pear", aggs: {products_per_year: {date_histogram: {filed: :creat
 Product.search "orange", body_options: {aggs: {price: {histogram: {filed: :price, interval: 10}}}}
 
 
+class Product < ApplicationRecord
+  searchkick highlight: [:name]
+end
+bands = Bands.search "cinema", highlight: true
+
+bands.with-highlights.each do |band, highlights|
+  highlights[:name]
+end
+
+Band.search "cinema", highlight: {tag: "<strong>"}
+
+Band.search "cinema", fileds: [:name], highlight: {fields: [:description]}
 
 
 
