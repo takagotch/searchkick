@@ -319,15 +319,16 @@ class Restaurant < ApplicationRecord
   end
 end
 
-Restaurant.search "", where: {}
-Restaurant.search "", where: {}
-Restaurant.search "", where: {}
-Restaurant.search "", where: {}
+Restaurant.search "soup", where: {bounds: {geo_shape: {type: "polygon", coordinates: [[{lat: 38, lon: -123}, ...]]}}}
+Restaurant.search "salad", where: {bounds: {geo_shape: {type: "circle", relation: "within", coordinates: [[{lat: 38, lon: -123}, radius: "1km" ...]]}}}
+Restaurant.search "burger", where: {bounds: {geo_shape: {type: "envelope", relation: "disjoint", coordinates: [{lat: 38, lon: -123}, {lat: 37, lon: -122}]}}}
+Restaurant.search "fries", where: {bounds: {geo_shape: {type: "envelope", relation: "contains", coordinates: [{lat: 38, lon: -123}, {lat: 37, lon: -122}]}}}
 
 class Dog < Animal
 end
 
 class Animal < ApplicationRecord
+  searchkick inheritance: true
 end
 Animal.reindex
 Dog.reindex
@@ -339,20 +340,20 @@ Dog.search "airbudd", suggest: true
 
 Product.search("soap", debug: true)
 Product.search("soap", explain: true).response
-Product.search_index.token()
-Product.search_index.tokens()
-Product.search_index.tokens()
-Product.search_index.tokens()
-Product.search_index.tokens()
+Product.search_index.token("Dish Washer Soap", analyzer: "searchkick_index")
+Product.search_index.tokens("dishwasher soap", analyzer: "searchkick_search")
+Product.search_index.tokens("dishwasher soap", analyzer: "searchkick_search2")
+Product.search_index.tokens("San Diego", analyzer: "searchkick_word_start_index")
+Product.search_index.tokens("dieg", analyzer: "searchkick_word_search")
 
 
-EMV[] = ""
-gem ''
+EMV["ELASTICSEARCH_URL"] = "https://es-domain-1234.us-east-1.es.amazonaws.com"
+gem 'faraday_middleware-aws-sigv4'
 
 Searchkick.aws_credentials = {
-  access_key_id: ENV[],
-  secret_access_key: ENV[],
-  region: ""
+  access_key_id: ENV["AWS_ACCESSS_KEY_ID"],
+  secret_access_key: ENV["AWS_SECRET_ACCESS_KEY"],
+  region: "us-east"
 }
 
 ENV["ELASTICSEARCH_URL"] = "https://user.password@host"
@@ -556,16 +557,48 @@ Product.reindex
 Searchkick.disable_callbacks
 
 class ProductTest < Minitest::Test
+  def setup
+    Searchkick.enable_callbacks
+  end
+  def teardown
+    Searchkick.disable_callbacks
+  end
+  def test_search
+    Product.create!(name: "Apple")
+    Product.search_index.refresh
+    assert_equal ["Apple"], Product.search("apple").map(&:name)
+  end
 end
 
 # spec/spec_helper.rb
 RSpec.configure do |config|
+  config.before(:suite) do
+    Product.reindex
+    Searchkick.disable_callbacks
+  end
+  config.around(:each, search: true) do |example|
+    Searchkick.callbacks(true) do
+      example.run
+    end
+  end
 end
 
 describe Product, search: true do
+  it "searches" do
+    Product.create!(name: "Apple")
+    Product.search_index.refresh
+    assert_equal ["Apple"], Product.search("apple").map(&:name)
+  end
 end
 
 FactoryBot.define do
+  factory :product do
+    trait :reindex do
+      after(:create) do |product, _evaluator|
+        product.reindex(refresh: true)
+      end
+    end
+  end
 end
 FactoryBot.create(:product, :some_trait, :reindex, some_attribute: "foo")
 
