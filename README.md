@@ -18,6 +18,16 @@ class Product < ApplicationRecord
 end
 Product.reindex
 
+products = Product.search("apples")
+products.each do |product|
+  puts product.name
+end
+
+Product.search "apples", where: {in_stock: true}, limit: 10, offset: 50
+
+
+
+
 ```
 
 
