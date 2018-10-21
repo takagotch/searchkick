@@ -10,6 +10,11 @@ brew services start elasticsearch
 
 gem 'searchkick'
 
+cd /tmp
+curl -o wordnet.tar.gz http://wordnetcode.princeton.edu/3.0/WNprolog-3.0.tar.gz
+tar -zxvf wordnet.tar.gz
+mv prolog/wn_s.pl /var/lib
+
 ```
 
 ```ruby
